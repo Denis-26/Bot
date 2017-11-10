@@ -1,0 +1,6 @@
+__pycache__/*
+*.docx
+*.jpg
+*.log
+*.[oa]
+*.pyc
