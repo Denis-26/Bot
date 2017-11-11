@@ -123,7 +123,6 @@ class Bot:
         ssl_context = 0
         if self._cert and self._keyfile:
             ssl_context = self._create_ssl_context()
-
         server = self.loop.create_server(handler, self._bot_url, self._port, ssl=ssl_context if ssl_context else None)
         self.loop.run_until_complete(server)
         self.loop.run_until_complete(self.api.set_webhook(self._web_hook, self._self_signed_certificate))
