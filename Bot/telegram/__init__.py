@@ -3,7 +3,7 @@ from .tools.InlineMode import (
     InlineQueryResultArticle,
     InlineKeyboardMarkup,
     InputTextMessageContent,
-    answerInlineQuery,
+    AnswerInlineQuery,
 )
 
 from .tools.Payments import LabeledPrice
