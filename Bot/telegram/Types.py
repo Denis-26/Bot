@@ -1,4 +1,3 @@
-
 class ChatUser:
     def __init__(self, id, first_name, last_name, username):
         self.id = id
@@ -153,10 +152,12 @@ class Message:
                                                     successful_payment['provider_payment_charge_id']
                                                     ) if successful_payment is not None else None
 
+
 class Location:
     def __init__(self, longitude, latitude):
         self.longitude = longitude
         self.latitude = latitude
+
 
 class Inline:
     def __init__(self, user, location, query):
@@ -166,17 +167,20 @@ class Inline:
                                  ) if location is not None else None
         self.query = query
 
+
 class InlineQuery(Inline):
     def __init__(self, id, user, location, query, offset):
         super().__init__(user, location, query)
         self.id = id
         self.offset = offset
 
+
 class ChosenInlineResult(Inline):
     def __init__(self, result_id, user, location, inline_message_id, query):
         super().__init__(user, location, query)
         self.result_id = result_id
         self.inline_message_id = inline_message_id
+
 
 class CallbackQuery:
     def __init__(self, id, user, message, inline_message_id, chat_instance, data, game_short_name):
@@ -188,12 +192,14 @@ class CallbackQuery:
         self.data = data
         self.game_short_name = game_short_name
 
+
 class ShippingQuery:
     def __init__(self, id, user, invoice_payload, shipping_address):
         self.id = id
         self.user = create_user(user)
         self.invoice_payload = invoice_payload
         self.shipping_address = create_shipping_address(shipping_address)
+
 
 class PreCheckoutQuery:
     def __init__(self, id, user, currency, total_amount, invoice_payload, shipping_option_id, order_info):
@@ -259,69 +265,70 @@ class Update:
         ) if pre_checkout_query is not None else None
 
 
-
 def create_message(field):
     return Message(
-            field['message_id'],
-            field.get('from', None),
-            field['date'],
-            field['chat'],
-            field.get('forward_from', None),
-            field.get('forward_from_chat', None),
-            field.get('forward_from_message_id', None),
-            field.get('forward_signature', None),
-            field.get('forward_date', None),
-            field.get('reply_to_message', None),
-            field.get('edit_date', None),
-            field.get('author_signature', None),
-            field.get('text', None),
-            field.get('entities', None),
-            field.get('caption_entities', None),
-            field.get('audio', None),
-            field.get('document', None),
-            field.get('game', None),
-            field.get('photo', None),
-            field.get('sticker', None),
-            field.get('video', None),
-            field.get('voice', None),
-            field.get('video_note', None),
-            field.get('caption', None),
-            field.get('contact', None),
-            field.get('location', None),
-            field.get('venue', None),
-            field.get('new_chat_members', None),
-            field.get('left_chat_member', None),
-            field.get('new_chat_title', None),
-            field.get('new_chat_photo', None),
-            field.get('delete_chat_photo', None),
-            field.get('group_chat_created', None),
-            field.get('supergroup_chat_created', None),
-            field.get('channel_chat_created', None),
-            field.get('migrate_to_chat_id', None),
-            field.get('migrate_from_chat_id', None),
-            field.get(' field', None),
-            field.get('invoice', None),
-            field.get('successful_payment', None),
-            ) if field is not None else None
+        field['message_id'],
+        field.get('from', None),
+        field['date'],
+        field['chat'],
+        field.get('forward_from', None),
+        field.get('forward_from_chat', None),
+        field.get('forward_from_message_id', None),
+        field.get('forward_signature', None),
+        field.get('forward_date', None),
+        field.get('reply_to_message', None),
+        field.get('edit_date', None),
+        field.get('author_signature', None),
+        field.get('text', None),
+        field.get('entities', None),
+        field.get('caption_entities', None),
+        field.get('audio', None),
+        field.get('document', None),
+        field.get('game', None),
+        field.get('photo', None),
+        field.get('sticker', None),
+        field.get('video', None),
+        field.get('voice', None),
+        field.get('video_note', None),
+        field.get('caption', None),
+        field.get('contact', None),
+        field.get('location', None),
+        field.get('venue', None),
+        field.get('new_chat_members', None),
+        field.get('left_chat_member', None),
+        field.get('new_chat_title', None),
+        field.get('new_chat_photo', None),
+        field.get('delete_chat_photo', None),
+        field.get('group_chat_created', None),
+        field.get('supergroup_chat_created', None),
+        field.get('channel_chat_created', None),
+        field.get('migrate_to_chat_id', None),
+        field.get('migrate_from_chat_id', None),
+        field.get(' field', None),
+        field.get('invoice', None),
+        field.get('successful_payment', None),
+    ) if field is not None else None
+
 
 def create_chat(field):
     return Chat(
-                field['id'], field['type'], field.get('title', None),
-                field.get('username', None), field.get('first_name', None),
-                field.get('last_name', None),
-                field.get('all_members_are_administrators', None),
-                field.get('photo', None), field.get('description', None),
-                field.get('invite_link', None), field.get('pinned_message', None),
-                field.get('sticker', None), field.get('can_set_sticker_set', None)
-                ) if field is not None else None
+        field['id'], field['type'], field.get('title', None),
+        field.get('username', None), field.get('first_name', None),
+        field.get('last_name', None),
+        field.get('all_members_are_administrators', None),
+        field.get('photo', None), field.get('description', None),
+        field.get('invite_link', None), field.get('pinned_message', None),
+        field.get('sticker', None), field.get('can_set_sticker_set', None)
+    ) if field is not None else None
+
 
 def create_user(field):
     return User(field['id'], field.get('is_bot', None),
-                     field['first_name'],
-                     field.get('last_name', None),
-                     field.get('fieldname', None),
-                     field.get('language_code', None)
-                     ) if field is not None else None
+                field['first_name'],
+                field.get('last_name', None),
+                field.get('username', None),
+                field.get('language_code', None)
+                ) if field is not None else None
 
 
 def create_message_entity(field):
@@ -332,6 +339,7 @@ def create_message_entity(field):
         m.get('url', None),
         m.get('user', None)
     ) for m in field] if field is not None else None
+
 
 def create_photo_size(field):
     return [
@@ -344,18 +352,20 @@ def create_photo_size(field):
         for p in field
     ] if field is not None else None
 
+
 def create_shipping_address(field):
     return ShippingAddress(field['country_code'],
-                                            field['state'],
-                                            field['city'],
-                                            field['street_line1'],
-                                            field['street_line2'],
-                                            field['post_code']
-                                            ) if field is not None else None
+                           field['state'],
+                           field['city'],
+                           field['street_line1'],
+                           field['street_line2'],
+                           field['post_code']
+                           ) if field is not None else None
+
 
 def create_order_info(field):
     return OrderInfo(field['name'],
-                                field['phone_number'],
-                                field['email'],
-                                field['shipping_address']
-                               ) if field is not None else None
+                     field['phone_number'],
+                     field['email'],
+                     field['shipping_address']
+                     ) if field is not None else None
