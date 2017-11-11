@@ -33,9 +33,9 @@ class _Api(API):
             r = await r.json()
             return r
 
-    async def set_webhook(self, web_hook):
-        result = await self._api_get("/setWebhook", params={'url': web_hook})
-        print(web_hook, result)
+    async def set_webhook(self, web_hook, cert=None):
+        params = {'url': web_hook} if cert is None else {'url': web_hook, 'certificate': cert}
+        result = await self._api_get("/setWebhook", params=params)
         if result['ok']:
             return result
         raise _WebHookError(result)
@@ -91,10 +91,11 @@ class Bot:
     def __init__(self, config, loop=None):
         self._bot_url = config['bot_url']
         self._port = config['port']
-        self._token= config['token']
+        self._token = config['token']
         self._web_hook = config['web_hook']
-        self._cert = config['cert']
-        self._keyfile = config['keyfile']
+        self._cert = config.get('cert', 0)
+        self._keyfile = config.get('keyfile', 0)
+        self._self_signed_certificate = None
         self.api = _Api(self._token)
         self.loop = loop
 
@@ -106,19 +107,25 @@ class Bot:
     async def handler(self, update):
         raise NotImplementedError("Please Implement this method")
 
+    def _create_ssl_context(self):
+        context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+        context.load_cert_chain(certfile=self._cert, keyfile=self._keyfile)
+        return context
+
+    def set_self_signed_certificate(self, cert_pem: bytes):
+        self._self_signed_certificate = cert_pem
+
     def run(self):
         app = web.Application()
         app.router.add_post('/', self._handler)
-        try:
-            if self._cert != "None" and self._keyfile != "None":
-                context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
-                context.load_cert_chain(certfile=self._cert, keyfile=self._keyfile)
-        except Exception as ex:
-            print(ex)
-            return ex
-
         handler = app.make_handler()
-        server = self.loop.create_server(handler, self._bot_url, int(self._port))
+
+        ssl_context = 0
+        if self._cert and self._keyfile:
+            ssl_context = self._create_ssl_context()
+
+        server = self.loop.create_server(handler, self._bot_url, self._port, ssl=ssl_context if ssl_context else None)
         self.loop.run_until_complete(server)
-        self.loop.run_until_complete(self.api.set_webhook(self._web_hook))
+        self.loop.run_until_complete(self.api.set_webhook(self._web_hook, self._self_signed_certificate))
+
         print("======== Running on {} ========\n".format(self._bot_url+":"+str(self._port)))
