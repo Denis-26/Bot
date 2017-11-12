@@ -1,7 +1,3 @@
-import asyncio
-import aiohttp
-
-
 class API:
     def __init__(self, url):
         self._api_url = url
