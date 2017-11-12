@@ -34,7 +34,7 @@ class _Api(API):
             return r
 
     async def set_webhook(self, web_hook, cert=None):
-        params = {'url': web_hook} #if cert is None else {'url': web_hook, 'certificate': cert}
+        params = {'url': web_hook}
         result = await self._api_post("/setWebhook", params, {'certificate': cert})
         print(result)
         if result['ok']:
@@ -113,7 +113,7 @@ class Bot:
         context.load_cert_chain(certfile=self._cert, keyfile=self._keyfile)
         return context
 
-    def set_self_signed_certificate(self, cert_pem: bytes):
+    def set_self_signed_certificate(self, cert_pem):
         self._self_signed_certificate = cert_pem
 
     def run(self):
@@ -123,7 +123,6 @@ class Bot:
 
         ssl_context = 0
         if self._cert and self._keyfile:
-            print("ssl enabled")
             ssl_context = self._create_ssl_context()
         server = self.loop.create_server(handler, self._bot_url, self._port, ssl=ssl_context if ssl_context else None)
         self.loop.run_until_complete(server)
