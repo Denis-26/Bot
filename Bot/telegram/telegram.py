@@ -34,8 +34,11 @@ class _Api(API):
             return r
 
     async def set_webhook(self, web_hook, cert=None):
-        params = {'url': web_hook}
-        result = await self._api_post("/setWebhook", params, {'certificate': cert})
+        if cert is not None:
+            params = {'url': web_hook, 'certificate': cert}
+        else:
+            params = {'url': web_hook}
+        result = await self._api_get("/setWebhook", params)
         print(result)
         if result['ok']:
             return result
