@@ -79,7 +79,6 @@ class _Api(API):
         async with aiohttp.ClientSession() as session:
             result = await session.get(download_url)
             result = await result.read()
-            result = io.BytesIO(result)
         return result
 
     async def delete_message(self, chat_id, m_id):
