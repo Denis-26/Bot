@@ -2,6 +2,7 @@ import aiohttp
 import io
 import inspect
 import ssl
+import asyncio
 import logging
 from .helpers import func_args
 from ..Api import API
@@ -58,47 +59,40 @@ class _Api(API):
         raise _WebHookError(result)
 
     async def delete_webhook(self):
-        result = await self._api_get("/deleteWebhook")
-        self._log(result)
+        await self._api_get("/deleteWebhook")
 
     async def send_message(self, chat_id, text, **kwargs):
         argvalues = func_args(inspect.currentframe())
         params = {**argvalues, **kwargs}
         result = await self._api_get("/sendMessage", params=params)
-        self._log(result)
         return result
 
     async def answer_inline_query(self, answer_inline_query):
         result = await self._api_get("/answerInlineQuery", params=answer_inline_query)
-        self._log(result)
         return result
 
     async def send_photo(self, chat_id, photo, **kwargs):
         argvalues = func_args(inspect.currentframe())
         params = {**argvalues, **kwargs}
         data = {'photo': photo}
-        result = self._api_post("/sendPhoto", params, data)
-        self._log(result)
+        result = await self._api_post("/sendPhoto", params, data)
         return result
 
     async def send_invoice(self, chat_id, title, payload, provider_token, start_parameter, currency, prices, **kwargs):
         argvalues = func_args(inspect.currentframe())
         params = {**argvalues, **kwargs}
         result = await self._api_get('/sendInvoice', params)
-        self._log(result)
         return result
 
     async def answer_precheckout_query(self, pre_checkout_query_id, **kwargs):
         argvalues = func_args(inspect.currentframe())
         params = {**argvalues, **kwargs}
         result = await self._api_get('/answerPreCheckoutQuery', params)
-        self._log(result)
         return result
 
     async def get_file(self, file_id):
         params = {'file_id': file_id}
         result = await self._api_get('/getFile', params)
-        self._log(result)
         download_url = self.file_download_url + self.token + '/' + result['result']['file_path']
         async with aiohttp.ClientSession() as session:
             result = await session.get(download_url)
@@ -109,7 +103,6 @@ class _Api(API):
     async def delete_message(self, chat_id, m_id):
         params = func_args(inspect.currentframe())
         result = await self._api_get('/deleteMessage', params)
-        self._log(result)
         return result
 
 
@@ -144,13 +137,22 @@ class Bot:
     def set_self_signed_certificate(self, cert_pem):
         self._self_signed_certificate = cert_pem
 
+    def stop(self, app, handler, srv):
+        print("\n{}Finishing bot task ....... {}".format(Fore.GREEN, Style.RESET_ALL), end="")
+        srv.close()
+        self.loop.run_until_complete(srv.wait_closed())
+        self.loop.run_until_complete(app.shutdown())
+        self.loop.run_until_complete(handler.shutdown(60.0))
+        self.loop.run_until_complete(app.cleanup())
+        print("{}[OK]".format(Fore.BLUE, Style.RESET_ALL))
+
     def run(self):
         app = web.Application()
         app.router.add_post('/', self._handler)
         handler = app.make_handler()
         ssl_context = self._create_ssl_context()
         server = self.loop.create_server(handler, self._bot_url, self._port, ssl=ssl_context)
-        self.loop.run_until_complete(server)
+        srv = self.loop.run_until_complete(server)
         self.loop.run_until_complete(self.api.set_webhook(self._web_hook, self._self_signed_certificate))
-
         print("{}Bot run on {}[{}:{}]{}\n".format(Fore.GREEN, Fore.BLUE, self._bot_url, str(self._port), Style.RESET_ALL))
+        return app, handler, srv
