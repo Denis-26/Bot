@@ -1,6 +1,5 @@
 import inspect
 
-
 def func_args(frame):
     args, _, _, values = inspect.getargvalues(frame)
     format_values = {}
