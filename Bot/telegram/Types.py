@@ -304,7 +304,7 @@ def create_message(field):
         field.get('channel_chat_created', None),
         field.get('migrate_to_chat_id', None),
         field.get('migrate_from_chat_id', None),
-        field.get(' field', None),
+        field.get('field', None),
         field.get('invoice', None),
         field.get('successful_payment', None),
     ) if field is not None else None
@@ -332,6 +332,7 @@ def create_user(field):
 
 
 def create_message_entity(field):
+    #print(field)
     return [MessageEntity(
         m['type'],
         m['offset'],

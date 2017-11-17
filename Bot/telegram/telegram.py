@@ -46,6 +46,7 @@ class _Api(API):
 
     async def set_webhook(self, web_hook, cert=None):
         print("{}Setting webhook ...... {}".format(Fore.GREEN, Style.RESET_ALL))
+        await self.delete_webhook()
         if cert is not None:
             params = {'url': web_hook}
             data = {'certificate': cert}
@@ -54,12 +55,13 @@ class _Api(API):
             params = {'url': web_hook}
             result = await self._api_get("/setWebhook", params)
         print("{}Webhook ...... {} [{}] {}".format(Fore.GREEN, Fore.BLUE, str(result['ok']), Style.RESET_ALL))
+        print(result)
         if result['ok']:
             return result
         raise _WebHookError(result)
 
     async def delete_webhook(self):
-        await self._api_get("/deleteWebhook")
+        await self._api_get("/deleteWebhook", params={})
 
     async def send_message(self, chat_id, text, **kwargs):
         argvalues = func_args(inspect.currentframe())
@@ -118,6 +120,7 @@ class Bot:
         self.loop = loop
 
     async def _handler(self, update):
+        print(update)
         json_update = await update.json()
         await self.handler(parser(json_update))
         return web.Response(text="OK")

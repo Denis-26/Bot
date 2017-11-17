@@ -16,4 +16,4 @@ def parser(update):
             update.get('pre_checkout_query', None)
         )
     except Exception as ex:
-        logging.error(str(ex))
+        logging.error("Update parse error"+str(ex))
