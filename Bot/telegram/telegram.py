@@ -1,8 +1,6 @@
 import aiohttp
-import io
 import inspect
 import ssl
-import asyncio
 import logging
 from .helpers import func_args
 from ..Api import API
@@ -16,52 +14,54 @@ class _WebHookError(Exception):
         Exception.__init__(self, *args, **kwargs)
 
 
+def _log(response):
+    if not response['ok']:
+        logging.error(response)
+
+
 class _Api(API):
     def __init__(self, token):
         super().__init__("https://api.telegram.org/bot")
         self.token = token
         self.file_download_url = "https://api.telegram.org/file/bot"
-        with open('log.log', 'w') as log_file: pass
-        logging.basicConfig(filename = 'log.log')
-
-    def _log(self, response):
-        if not response['ok']:
-            logging.error(response)
+        with open('log.log', 'w'):
+            pass
+        logging.basicConfig(filename='log.log')
 
     async def _api_get(self, method: str, params: dict):
         url = self._api_url + self.token + method
         async with aiohttp.ClientSession() as session:
             r = await session.get(url, params=params)
             r = await r.json()
-            self._log(r)
+            _log(r)
             return r
 
-    async def _api_post(self, method: str, params: dict, data: dict):
+    async def _api_post(self, method: str, params: dict, data: dict=None):
         url = self._api_url + self.token + method
         async with aiohttp.ClientSession() as session:
             r = await session.post(url, params=params, data=data)
             r = await r.json()
-            self._log(r)
+            _log(r)
             return r
 
     async def set_webhook(self, web_hook, cert=None):
         print("{}Setting webhook ...... {}".format(Fore.GREEN, Style.RESET_ALL))
-        await self.delete_webhook()
-        if cert is not None:
-            params = {'url': web_hook}
-            data = {'certificate': cert}
-            result = await self._api_post("/setWebhook", params, data)
-        else:
-            params = {'url': web_hook}
-            result = await self._api_get("/setWebhook", params)
-        print("{}Webhook ...... {} [{}] {}".format(Fore.GREEN, Fore.BLUE, str(result['ok']), Style.RESET_ALL))
-        print(result)
-        if result['ok']:
-            return result
-        raise _WebHookError(result)
+
+        params = {'url': web_hook}
+        data = {'certificate': cert} if cert is not None else None
+        result = await self._api_post("/setWebhook", params, data=data)
+
+        print("{}{}Status: [{}]\nDescription: [{}] {}"
+              .format(Fore.GREEN, Fore.BLUE, str(result.get('ok', "")), result.get('description', ""), Style.RESET_ALL))
+
+        if not result['ok']:
+            raise _WebHookError(result)
 
     async def delete_webhook(self):
-        await self._api_get("/deleteWebhook", params={})
+        print("{}Deleting webhook ......{}".format(Fore.GREEN, Style.RESET_ALL))
+        result = await self._api_get("/deleteWebhook", params={})
+        print("{}Status: [{}]\nDescription: [{}] {}"
+              .format(Fore.BLUE, str(result.get('ok', "")), result.get('description', ""), Style.RESET_ALL))
 
     async def send_message(self, chat_id, text, **kwargs):
         argvalues = func_args(inspect.currentframe())
@@ -120,7 +120,6 @@ class Bot:
         self.loop = loop
 
     async def _handler(self, update):
-        print(update)
         json_update = await update.json()
         await self.handler(parser(json_update))
         return web.Response(text="OK")
@@ -136,25 +135,11 @@ class Bot:
         else:
             return None
 
-    def set_self_signed_certificate(self, cert_pem):
-        self._self_signed_certificate = cert_pem
-
-    def stop(self, app, handler, srv):
-        print("\n{}Finishing bot task ....... {}".format(Fore.GREEN, Style.RESET_ALL), end="")
-        srv.close()
-        self.loop.run_until_complete(srv.wait_closed())
-        self.loop.run_until_complete(app.shutdown())
-        self.loop.run_until_complete(handler.shutdown(60.0))
-        self.loop.run_until_complete(app.cleanup())
-        print("{}[OK]".format(Fore.BLUE, Style.RESET_ALL))
-
-    def run(self):
+    async def run(self):
         app = web.Application()
         app.router.add_post('/', self._handler)
         handler = app.make_handler()
         ssl_context = self._create_ssl_context()
-        server = self.loop.create_server(handler, self._bot_url, self._port, ssl=ssl_context)
-        srv = self.loop.run_until_complete(server)
-        self.loop.run_until_complete(self.api.set_webhook(self._web_hook, self._self_signed_certificate))
-        print("{}Bot run on {}[{}:{}]{}\n".format(Fore.GREEN, Fore.BLUE, self._bot_url, str(self._port), Style.RESET_ALL))
-        return app, handler, srv
+        await self.loop.create_server(handler, self._bot_url, self._port, ssl=ssl_context)
+        print("{}Bot run on {}[{}:{}]{}\n"
+              .format(Fore.GREEN, Fore.BLUE, self._bot_url, str(self._port), Style.RESET_ALL))
