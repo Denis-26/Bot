@@ -1,5 +1,6 @@
 import aiohttp
 import inspect
+import asyncio
 import ssl
 import logging
 from .helpers import func_args
@@ -140,6 +141,7 @@ class Bot:
         app.router.add_post('/', self._handler)
         handler = app.make_handler()
         ssl_context = self._create_ssl_context()
-        await self.loop.create_server(handler, self._bot_url, self._port, ssl=ssl_context)
+        serv = await self.loop.create_server(handler, self._bot_url, self._port, ssl=ssl_context)
         print("{}Bot run on {}[{}:{}]{}\n"
               .format(Fore.GREEN, Fore.BLUE, self._bot_url, str(self._port), Style.RESET_ALL))
+        return serv
