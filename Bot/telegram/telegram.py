@@ -1,8 +1,10 @@
 import aiohttp
 import inspect
-import asyncio
 import ssl
+import asyncio
 import logging
+import sys
+import signal
 from .helpers import func_args
 from ..Api import API
 from aiohttp import web
@@ -21,9 +23,10 @@ def _log(response):
 
 
 class _Api(API):
-    def __init__(self, token):
+    def __init__(self, token, loop):
         super().__init__("https://api.telegram.org/bot")
         self.token = token
+        self.session = aiohttp.ClientSession(loop=loop)
         self.file_download_url = "https://api.telegram.org/file/bot"
         with open('log.log', 'w'):
             pass
@@ -31,19 +34,17 @@ class _Api(API):
 
     async def _api_get(self, method: str, params: dict):
         url = self._api_url + self.token + method
-        async with aiohttp.ClientSession() as session:
-            r = await session.get(url, params=params)
-            r = await r.json()
-            _log(r)
-            return r
+        r = await self.session.get(url, params=params)
+        r = await r.json()
+        _log(r)
+        return r
 
     async def _api_post(self, method: str, params: dict, data: dict=None):
         url = self._api_url + self.token + method
-        async with aiohttp.ClientSession() as session:
-            r = await session.post(url, params=params, data=data)
-            r = await r.json()
-            _log(r)
-            return r
+        r = await self.session.post(url, params=params, data=data)
+        r = await r.json()
+        _log(r)
+        return r
 
     async def set_webhook(self, web_hook, cert=None):
         print("{}Setting webhook ...... {}".format(Fore.GREEN, Style.RESET_ALL))
@@ -116,9 +117,14 @@ class Bot:
         self._web_hook = config['web_hook']
         self._cert = config.get('cert', 0)
         self._keyfile = config.get('keyfile', 0)
-        self._self_signed_certificate = None
-        self.api = _Api(self._token)
+        self._serv = None
+        self.api = _Api(self._token, loop)
         self.loop = loop
+        signal.signal(signal.SIGINT, self.signal_handler)
+
+    def signal_handler(self, signal, frame):
+        self.api.session.close()
+        sys.exit(0)
 
     async def _handler(self, update):
         json_update = await update.json()
@@ -136,12 +142,20 @@ class Bot:
         else:
             return None
 
+    def stop_running(self):
+        self._serv.close()
+        self.loop.run_until_complete(self._serv.wait_closed())
+        pending = asyncio.Task.all_tasks()
+        for task in pending:
+            task.cancel()
+        self.loop.run_until_complete(asyncio.gather(*pending))
+
     async def run(self):
         app = web.Application()
         app.router.add_post('/', self._handler)
         handler = app.make_handler()
         ssl_context = self._create_ssl_context()
-        serv = await self.loop.create_server(handler, self._bot_url, self._port, ssl=ssl_context)
+        self._serv = await self.loop.create_server(handler, self._bot_url, self._port, ssl=ssl_context)
         print("{}Bot run on {}[{}:{}]{}\n"
               .format(Fore.GREEN, Fore.BLUE, self._bot_url, str(self._port), Style.RESET_ALL))
-        return serv
+        #return serv
