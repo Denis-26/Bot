@@ -75,6 +75,17 @@ class _Api(API):
         result = await self._api_get("/answerInlineQuery", params=answer_inline_query)
         return result
 
+
+    async def send_sticker(self, chat_id, sticker, **kwargs):
+        argvalues = func_args(inspect.currentframe())
+        params = {
+            'chat_id': chat_id,
+            'sticker': sticker,
+        }
+        #data = {'sticker': sticker}
+        result = await self._api_get("/sendSticker", params)
+        return result
+
     async def send_photo(self, chat_id, photo, **kwargs):
         argvalues = func_args(inspect.currentframe())
         params = {**argvalues, **kwargs}

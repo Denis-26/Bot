@@ -242,7 +242,7 @@ class Update:
             callback_query['from'],
             callback_query.get('message', None),
             callback_query.get('inline_message_id', None),
-            callback_query.get['chat_instance'],
+            callback_query.get('chat_instance', None),
             callback_query.get('data', None),
             callback_query.get('game_short_name', None)
         ) if callback_query is not None else None
