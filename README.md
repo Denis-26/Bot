@@ -58,9 +58,48 @@ if __name__ == "__main__":
 
 ## Documentation
 When you inherit from **telegram.Bot**, your class get field **self.api**. This field has type **_Api**.
+Also your class will get next methods:
+
+```python
+Bot(config, loop=None)
+coroutine run(self)
+stop_running()
+coroutine handler(self, update) # must be redefined
+```
 
 ### Methods of **_Api** class
 
 ```python
-_Api.send_message(chat_id, text, **kwargs)
+coroutine set_webhook(self, web_hook, cert=None)
+coroutine delete_webhook(self, chat_id, text, **kwargs)
+coroutine send_message(self, chat_id, text, **kwargs)
+coroutine answer_inline_query(self, answer_inline_query)
+coroutine answer_inline_query(self, answer_inline_query)
+coroutine send_sticker(self, chat_id, sticker, **kwargs)
+coroutine send_photo(self, chat_id, photo, **kwargs)
+coroutine send_photo(self, chat_id, photo, **kwargs)
+coroutine send_invoice(self, chat_id, title, payload, provider_token, start_parameter, currency, prices, **kwargs)
+coroutine answer_precheckout_query(self, pre_checkout_query_id, **kwargs)
+coroutine get_file(self, file_id)
+coroutine delete_message(self, chat_id, m_id)
 ```
+
+### Tools (Buttons)
+
+telegram has some tools for work with buttons
+
+#### telegram.ReplyKeyboardMarkup() 
+methods: 
+```python
+add_button("button_text")
+add_par() # create \n in buttons markup
+```
+
+
+#### telegram.InlineKeyboardMarkup() 
+methods: 
+```python
+add_button("button_text", callback_data=some_data)
+add_par() # create \n in buttons markup
+```
+
