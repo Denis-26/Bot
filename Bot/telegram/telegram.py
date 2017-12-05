@@ -139,7 +139,7 @@ class Bot:
 
     async def _handler(self, update):
         json_update = await update.json()
-        await self.handler(parser(json_update))
+        self.loop.create_task(self.handler(parser(json_update)))
         return web.Response(text="OK")
 
     async def handler(self, update):
@@ -169,4 +169,3 @@ class Bot:
         self._serv = await self.loop.create_server(handler, self._bot_url, self._port, ssl=ssl_context)
         print("{}Bot run on {}[{}:{}]{}\n"
               .format(Fore.GREEN, Fore.BLUE, self._bot_url, str(self._port), Style.RESET_ALL))
-        #return serv
