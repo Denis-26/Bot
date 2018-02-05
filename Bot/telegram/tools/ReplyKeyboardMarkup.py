@@ -11,3 +11,17 @@ class ReplyKeyboardMarkup(Keyboard):
 
 def keyboard_remove(yes_no, **kwargs):
     return json.dumps({'remove_keyboard': yes_no, **kwargs})
+
+def make_reply_buttons(buttons):
+    kb = ReplyKeyboardMarkup()
+
+    for b in buttons:
+        if b[0] == '\n':
+            kb.add_par()
+            kb.add_button(b[1:])
+        elif b[-1] == '\n':
+            kb.add_button(b[:-1])
+            kb.add_par()
+        else:
+            kb.add_button(b)
+    return kb.json

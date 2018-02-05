@@ -29,3 +29,18 @@ class InputTextMessageContent(Get):
 class AnswerInlineQuery(Get):
     def __init__(self, inline_query_id, results, **kwargs):
         self._info = {**kwargs, **{'inline_query_id': inline_query_id, 'results': json.dumps(results)}}
+
+
+def make_inline_buttons(buttons, cb_data):
+    kb = InlineKeyboardMarkup()
+
+    for b, cb in zip(buttons, cb_data):
+        if b[0] == '\n':
+            kb.add_par()
+            kb.add_button(b[1:], callback_data = cb)
+        elif b[-1] == '\n':
+            kb.add_button(b[:-1], callback_data = cb)
+            kb.add_par()
+        else:
+            kb.add_button(b, callback_data=cb)
+    return kb.json
