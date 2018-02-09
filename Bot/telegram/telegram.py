@@ -71,10 +71,17 @@ class _Api(API):
         result = await self._api_get("/sendMessage", params=params)
         return result
 
-    async def answer_inline_query(self, answer_inline_query):
-        result = await self._api_get("/answerInlineQuery", params=answer_inline_query)
-        return result
+    # async def answer_inline_query(self, inline_query_id, results, **kwargs):
+    #     result = await self._api_get("/answerInlineQuery", params=answer_inline_query)
+    #     return result
 
+    async def answer_callback_query(self, callback_query_id, **kwargs):
+        params = {
+            "callback_query_id": callback_query_id,
+            **kwargs
+        }
+        result = await self._api_get("/answerCallbackQuery", params=params)
+        return result
 
     async def send_sticker(self, chat_id, sticker, **kwargs):
         argvalues = func_args(inspect.currentframe())
@@ -117,6 +124,16 @@ class _Api(API):
     async def delete_message(self, chat_id, m_id):
         params = func_args(inspect.currentframe())
         result = await self._api_get('/deleteMessage', params)
+        return result
+
+    async def edit_message_reply_markup(self, **kwargs):
+        params = {**kwargs}
+        result = await self._api_get('/editMessageReplyMarkup', params)
+        return result
+
+    async def edit_message_text(self, text, **kwargs):
+        params = {"text": text, **kwargs}
+        result = await self._api_get('/editMessageText', params)
         return result
 
 
