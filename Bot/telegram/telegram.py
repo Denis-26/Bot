@@ -46,6 +46,31 @@ class _Api(API):
         _log(r)
         return r
 
+    def get_user_id(self, update):
+        if update.callback_query is not None:
+            return update.callback_query.user.id
+        elif update.message is not None:
+            return update.message.user.id
+        elif update.pre_checkout_query is not None:
+            return update.pre_checkout_query.user.id
+
+    def get_message_id(self, update):
+        if update.callback_query is not None:
+            return update.callback_query.message.message_id
+        elif update.message is not None:
+            return update.message.message_id
+        elif update.pre_checkout_query is not None:
+            return update.pre_checkout_query.id
+
+    def get_payload(self, update):
+        if update.callback_query is not None:
+            return update.callback_query.data
+        elif update.message is not None:
+            return update.message.text
+        elif update.pre_checkout_query is not None:
+            return update.pre_checkout_query.invoice_payload
+
+
     async def set_webhook(self, web_hook, cert=None):
         print("{}Setting webhook ...... {}".format(Fore.GREEN, Style.RESET_ALL))
 
