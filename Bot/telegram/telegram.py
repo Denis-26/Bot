@@ -5,6 +5,7 @@ import asyncio
 import logging
 import sys
 import signal
+import datetime
 from .helpers import func_args
 from ..Api import API
 from aiohttp import web
@@ -170,7 +171,10 @@ class Bot:
         self._web_hook = config['web_hook']
         self._cert = config.get('cert', 0)
         self._keyfile = config.get('keyfile', 0)
+        self._name = config.get('bot_name', "Noname bot")
+        self._uptime = "None"
         self._serv = None
+        self._app = web.Application()
         self.api = _Api(self._token, loop)
         self.loop = loop
         signal.signal(signal.SIGINT, self.signal_handler)
@@ -203,11 +207,22 @@ class Bot:
             task.cancel()
         self.loop.run_until_complete(asyncio.gather(*pending))
 
+    def add_handler(self, way, handler):
+        self._app.router.add_get(way, handler)
+
+    def get_server_info(self):
+        return {
+            "uptime": self._uptime,
+            "port": self._port,
+            "url": self._bot_url,
+            "name": self._name
+        }
+
     async def run(self):
-        app = web.Application()
-        app.router.add_post('/', self._handler)
-        handler = app.make_handler()
+        self._app.router.add_post('/', self._handler)
+        handler = self._app.make_handler()
         ssl_context = self._create_ssl_context()
         self._serv = await self.loop.create_server(handler, self._bot_url, self._port, ssl=ssl_context)
         print("{}Bot run on {}[{}:{}]{}\n"
               .format(Fore.GREEN, Fore.BLUE, self._bot_url, str(self._port), Style.RESET_ALL))
+        self._uptime = (datetime.datetime.now()).strftime("%d.%m.%Y %I:%M %p")
