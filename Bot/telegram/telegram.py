@@ -214,8 +214,9 @@ class Bot:
         return {
             "uptime": self._uptime,
             "port": self._port,
-            "url": self._bot_url,
-            "name": self._name
+            "url": self._bot_url + self._port,
+            "name": self._name,
+            "webhook": self._web_hook
         }
 
     async def run(self):
