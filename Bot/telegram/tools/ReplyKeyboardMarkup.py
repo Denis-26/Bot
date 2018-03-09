@@ -3,8 +3,8 @@ from . HelpClasses import Keyboard
 
 
 class ReplyKeyboardMarkup(Keyboard):
-    def __init__(self):
-        self._keyboard = {"keyboard": [[]], 'resize_keyboard': True}
+    def __init__(self, **kwargs):
+        self._keyboard = {"keyboard": [[]], 'resize_keyboard': True, **kwargs}
         self._keyboard_type = 'keyboard'
         self._row = 0
 
